@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.addRequiredDeviceCapabilitiesToInfoPlist = exports.addHardwareFeaturesToAndroidManifestManifest = exports.withRequiredHardware = void 0;
 const config_plugins_1 = require("@expo/config-plugins");
 const withRequiredHardware = (config, { android, ios }) => {
     // Add android required hardware
@@ -15,7 +14,6 @@ const withRequiredHardware = (config, { android, ios }) => {
     });
     return config;
 };
-exports.withRequiredHardware = withRequiredHardware;
 function addHardwareFeaturesToAndroidManifestManifest(androidManifest, requiredFeatures) {
     var _a;
     // Add `<uses-feature android:name="android.hardware.camera.front" android:required="true"/>` to the AndroidManifest.xml
@@ -36,7 +34,6 @@ function addHardwareFeaturesToAndroidManifestManifest(androidManifest, requiredF
     }
     return androidManifest;
 }
-exports.addHardwareFeaturesToAndroidManifestManifest = addHardwareFeaturesToAndroidManifestManifest;
 function addRequiredDeviceCapabilitiesToInfoPlist(infoPlist, requiredFeatures) {
     if (!infoPlist.UIRequiredDeviceCapabilities) {
         infoPlist.UIRequiredDeviceCapabilities = [];
@@ -50,4 +47,4 @@ function addRequiredDeviceCapabilitiesToInfoPlist(infoPlist, requiredFeatures) {
     infoPlist.UIRequiredDeviceCapabilities = existingFeatures;
     return infoPlist;
 }
-exports.addRequiredDeviceCapabilitiesToInfoPlist = addRequiredDeviceCapabilitiesToInfoPlist;
+exports.default = withRequiredHardware;

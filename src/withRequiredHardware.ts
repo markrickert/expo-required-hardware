@@ -11,7 +11,7 @@ import { validIOSFeatures } from "./valid-features/ios";
 export type HardwareFeatureAndroid = (typeof validAndroidFeatures)[number];
 export type HardwareFeatureIOS = (typeof validIOSFeatures)[number];
 
-export const withRequiredHardware: ConfigPlugin<{
+const withRequiredHardware: ConfigPlugin<{
   ios: Array<HardwareFeatureIOS>;
   android: Array<HardwareFeatureAndroid>;
 }> = (config, { android, ios }) => {
@@ -30,7 +30,7 @@ export const withRequiredHardware: ConfigPlugin<{
   return config;
 };
 
-export function addHardwareFeaturesToAndroidManifestManifest(
+function addHardwareFeaturesToAndroidManifestManifest(
   androidManifest: AndroidConfig.Manifest.AndroidManifest,
   requiredFeatures: Array<HardwareFeatureAndroid>
 ) {
@@ -57,7 +57,7 @@ export function addHardwareFeaturesToAndroidManifestManifest(
   return androidManifest;
 }
 
-export function addRequiredDeviceCapabilitiesToInfoPlist(
+function addRequiredDeviceCapabilitiesToInfoPlist(
   infoPlist: IOSConfig.InfoPlist,
   requiredFeatures: Array<HardwareFeatureIOS>
 ) {
@@ -74,3 +74,5 @@ export function addRequiredDeviceCapabilitiesToInfoPlist(
   infoPlist.UIRequiredDeviceCapabilities = existingFeatures;
   return infoPlist;
 }
+
+export default withRequiredHardware;
