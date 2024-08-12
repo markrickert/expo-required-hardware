@@ -44,5 +44,5 @@ Add the plugin declaration anywhere in your app's plugin array:
 
 You can find a list of all available hardware features for Android and iOS in their respective files in this repo:
 
-- [Android Hardware Features](./src/android.ts)
-- [iOS Hardware Features](./src/ios.ts)
+- [Android Hardware Features](./src/valid-features/android.ts)
+- [iOS Hardware Features](./src/valid-features/ios.ts)
