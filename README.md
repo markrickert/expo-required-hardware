@@ -34,8 +34,14 @@ Add the plugin declaration anywhere in your app's plugin array:
       "expo-required-hardware",
       {
         // This app can only be installed on devices that have NFC and a gyroscope
-        "ios": ["nfc", "gyroscope"],
-        "android": ["android.hardware.nfc", "android.hardware.sensor.gyroscope"]
+        "ios": [
+          "nfc",
+          "gyroscope"
+        ],
+        "android": [
+          "android.hardware.nfc",
+          "android.hardware.sensor.gyroscope"
+        ]
       }
     ],
   ]
