@@ -1,0 +1,37 @@
+{
+  "name": "expo-required-hardware",
+  "version": "0.0.1",
+  "description": "Allows you to specify required hardware capabilities for your Expo app",
+  "main": "./app.plugin.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "yarn run lint && rm -rf build && tsc",
+    "lint": "eslint . --ext .ts",
+    "prepare": "yarn run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/markrickert/expo-required-hardware.git"
+  },
+  "keywords": [
+    "expo",
+    "hardware",
+    "device",
+    "capabilities",
+    "features"
+  ],
+  "author": "markrickert",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/markrickert/expo-required-hardware/issues"
+  },
+  "homepage": "https://github.com/markrickert/expo-required-hardware#readme",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.10.1",
+    "@typescript-eslint/parser": "^5.10.1",
+    "eslint": "^8.8.0",
+    "expo-module-scripts": "^2.0.0",
+    "typescript": "^4.5.5"
+  },
+  "dependencies": {}
+}
