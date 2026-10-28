@@ -1,6 +1,6 @@
 {
   "name": "expo-required-hardware",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Allows you to specify required hardware capabilities for your Expo app",
   "main": "./app.plugin.js",
   "types": "./build/withRequiredHardware.d.ts",
