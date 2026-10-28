@@ -1,77 +1,136 @@
 import {
-  type ConfigPlugin,
-  withInfoPlist,
-  withAndroidManifest,
   type AndroidConfig,
+  type ConfigPlugin,
   type IOSConfig,
-} from "@expo/config-plugins";
+  WarningAggregator,
+  withAndroidManifest,
+  withInfoPlist,
+} from "expo/config-plugins";
+
 import { validAndroidFeatures } from "./valid-features/android";
 import { validIOSFeatures } from "./valid-features/ios";
 
 export type HardwareFeatureAndroid = (typeof validAndroidFeatures)[number];
 export type HardwareFeatureIOS = (typeof validIOSFeatures)[number];
 
-const withRequiredHardware: ConfigPlugin<{
-  ios: Array<HardwareFeatureIOS>;
-  android: Array<HardwareFeatureAndroid>;
-}> = (config, { android, ios }) => {
-  // Add android required hardware
-  config = withAndroidManifest(config, (config) => {
-    config.modResults = addHardwareFeaturesToAndroidManifestManifest(config.modResults, android);
-    return config;
-  });
+export type RequiredHardwareProps = {
+  ios?: HardwareFeatureIOS[];
+  android?: HardwareFeatureAndroid[];
+};
 
-  // Add ios required hardware
-  config = withInfoPlist(config, (config) => {
-    config.modResults = addRequiredDeviceCapabilitiesToInfoPlist(config.modResults, ios);
-    return config;
-  });
+const PLUGIN_NAME = "expo-required-hardware";
+
+const withRequiredHardware: ConfigPlugin<RequiredHardwareProps | void> = (
+  config,
+  props,
+) => {
+  const { android = [], ios = [] } = props ?? {};
+  assertStringArray(android, "android");
+  assertStringArray(ios, "ios");
+
+  if (android.length) {
+    config = withAndroidManifest(config, (config) => {
+      warnUnknownFeatures(android, validAndroidFeatures, (message) =>
+        WarningAggregator.addWarningAndroid(PLUGIN_NAME, message),
+      );
+      config.modResults = addHardwareFeaturesToAndroidManifest(
+        config.modResults,
+        android,
+      );
+      return config;
+    });
+  }
+
+  if (ios.length) {
+    config = withInfoPlist(config, (config) => {
+      warnUnknownFeatures(ios, validIOSFeatures, (message) =>
+        WarningAggregator.addWarningIOS(PLUGIN_NAME, message),
+      );
+      config.modResults = addRequiredDeviceCapabilitiesToInfoPlist(
+        config.modResults,
+        ios,
+      );
+      return config;
+    });
+  }
 
   return config;
 };
 
-function addHardwareFeaturesToAndroidManifestManifest(
-  androidManifest: AndroidConfig.Manifest.AndroidManifest,
-  requiredFeatures: Array<HardwareFeatureAndroid>
-) {
-  // Add `<uses-feature android:name="android.hardware.camera.front" android:required="true"/>` to the AndroidManifest.xml
-  if (!Array.isArray(androidManifest.manifest["uses-feature"])) {
-    androidManifest.manifest["uses-feature"] = [];
+function assertStringArray(
+  value: unknown,
+  platform: string,
+): asserts value is string[] {
+  if (!Array.isArray(value) || value.some((item) => typeof item !== "string")) {
+    throw new Error(
+      `${PLUGIN_NAME}: the "${platform}" option must be an array of strings, received ${JSON.stringify(value)}`,
+    );
   }
+}
 
-  // Here we add the feature to the manifest:
-  // loop through the array of features and add them to the manifest if they don't exist
+function warnUnknownFeatures(
+  features: readonly string[],
+  validFeatures: readonly string[],
+  warn: (message: string) => void,
+) {
+  for (const feature of features) {
+    if (!validFeatures.includes(feature)) {
+      warn(
+        `"${feature}" is not a known hardware feature. It will still be added.`,
+      );
+    }
+  }
+}
+
+// Adds `<uses-feature android:name="..." android:required="true"/>` for each feature.
+export function addHardwareFeaturesToAndroidManifest(
+  androidManifest: AndroidConfig.Manifest.AndroidManifest,
+  requiredFeatures: readonly string[],
+): AndroidConfig.Manifest.AndroidManifest {
+  const usesFeature = androidManifest.manifest["uses-feature"] ?? [];
+
   for (const feature of requiredFeatures) {
-    if (
-      !androidManifest.manifest["uses-feature"].find((item) => item.$["android:name"] === feature)
-    ) {
-      androidManifest.manifest["uses-feature"]?.push({
-        $: {
-          "android:name": feature,
-          "android:required": "true",
-        },
+    const existing = usesFeature.find(
+      (item) => item.$?.["android:name"] === feature,
+    );
+    if (existing) {
+      existing.$["android:required"] = "true";
+    } else {
+      usesFeature.push({
+        $: { "android:name": feature, "android:required": "true" },
       });
     }
   }
 
+  androidManifest.manifest["uses-feature"] = usesFeature;
   return androidManifest;
 }
 
-function addRequiredDeviceCapabilitiesToInfoPlist(
+// UIRequiredDeviceCapabilities may be an array of capabilities or a dictionary of capability => boolean.
+export function addRequiredDeviceCapabilitiesToInfoPlist(
   infoPlist: IOSConfig.InfoPlist,
-  requiredFeatures: Array<HardwareFeatureIOS>
-) {
-  if (!infoPlist.UIRequiredDeviceCapabilities) {
-    infoPlist.UIRequiredDeviceCapabilities = [];
-  }
-  const existingFeatures = infoPlist.UIRequiredDeviceCapabilities as Array<HardwareFeatureIOS>;
-  for (const f of requiredFeatures) {
-    if (!existingFeatures.includes(f)) {
-      existingFeatures.push(f);
+  requiredFeatures: readonly string[],
+): IOSConfig.InfoPlist {
+  const existing = infoPlist.UIRequiredDeviceCapabilities;
+
+  if (existing && typeof existing === "object" && !Array.isArray(existing)) {
+    const capabilities = { ...(existing as Record<string, boolean>) };
+    for (const feature of requiredFeatures) {
+      capabilities[feature] = true;
     }
+    infoPlist.UIRequiredDeviceCapabilities = capabilities;
+    return infoPlist;
   }
 
-  infoPlist.UIRequiredDeviceCapabilities = existingFeatures;
+  const capabilities = Array.isArray(existing)
+    ? [...(existing as string[])]
+    : [];
+  for (const feature of requiredFeatures) {
+    if (!capabilities.includes(feature)) {
+      capabilities.push(feature);
+    }
+  }
+  infoPlist.UIRequiredDeviceCapabilities = capabilities;
   return infoPlist;
 }
 

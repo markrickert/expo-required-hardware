@@ -23,11 +23,15 @@ npm install expo-required-hardware
 yarn add expo-required-hardware
 ```
 
+## Compatibility
+
+Tested with Expo SDK 58. Requires `expo` as a peer dependency (the plugin uses `expo/config-plugins`).
+
 ## Usage in app.json / app.config.js
 
-Add the plugin declaration anywhere in your app's plugin array:
+Add the plugin declaration anywhere in your app's plugin array. Both `ios` and `android` are optional, so you can configure only one platform:
 
-```json
+```jsonc
 {
   "plugins": [
     [
@@ -52,3 +56,16 @@ You can find a list of all available hardware features for Android and iOS in th
 
 - [Android Hardware Features](./src/valid-features/android.ts)
 - [iOS Hardware Features](./src/valid-features/ios.ts)
+
+Features not in these lists are still added, but `expo prebuild` will print a warning in case of a typo.
+
+If your `Info.plist` already uses the dictionary form of `UIRequiredDeviceCapabilities`, the requested capabilities are set to `true` in that dictionary. On Android, any existing `<uses-feature>` entry for a requested feature is changed to `android:required="true"`.
+
+## Development
+
+```sh
+yarn install
+yarn lint
+yarn test
+yarn build # compiles src/ to build/, which is committed
+```
